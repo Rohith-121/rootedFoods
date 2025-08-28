@@ -99,15 +99,15 @@ async function handleRole(role, userId, userotp) {
           subject: otpMessages.subject,
           text: otpMessages.email.replace(otpMessages.otp, userotp),
         };
-        console.log("Sending OTP");
-        var mailResponse = await mail(mailOption);
-        console.log("OTP sent:", mailResponse);
-        if (mailResponse.error) {
-          return new responseModel(
-            false,
-            commonMessages.failed + mailResponse.error,
-          );
-        }
+        console.log("Sending OTP:", mailOption);
+        // var mailResponse = await mail(mailOption);
+        // console.log("OTP sent:", mailResponse);
+        // if (mailResponse.error) {
+        //   return new responseModel(
+        //     false,
+        //     commonMessages.failed + mailResponse.error,
+        //   );
+        // }
         return new responseModel(true, otpMessages.sent);
       case roles.Customer:
       case roles.Driver:
