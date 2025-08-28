@@ -157,7 +157,7 @@ async function createOrder(orderDetails) {
         id: orderDetails.storeDetails.id,
         storeName: orderDetails.storeDetails.storeName,
         phone: orderDetails.storeDetails.phone,
-        address: orderDetails.storeAddress,
+        address: orderDetails.storeDetails.storeAddress,
       },
       subscriptionId: orderDetails.subscriptionId,
       scheduledDelivery: orderDetails.scheduledDelivery,

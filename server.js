@@ -32,7 +32,7 @@ const couponCodes = require("./routes/coupon");
 const subscriptionRoutes = require("./routes/subscriptions");
 const payments = require("./routes/payments");
 const bannerRoutes = require("./routes/banners");
-const downloadExcelRoutes = require("./routes/export");
+const exportRoutes = require("./routes/export");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -74,7 +74,7 @@ app.use("/api/order", order);
 app.use("/api/coupon", couponCodes);
 app.use("/api/subscriptions", subscriptionRoutes);
 app.use("/api/banners", bannerRoutes); // API for banners
-app.use("/api/downloads", downloadExcelRoutes); // API for downloads
+app.use("/api/downloads", exportRoutes); // API for downloads
 // Serve uploaded images publicly
 app.use("/uploads", express.static("uploads"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));

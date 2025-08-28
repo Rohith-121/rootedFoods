@@ -1,104 +1,60 @@
 const express = require("express");
 const multer = require("multer");
-const router = express.Router();
 const { BlobServiceClient } = require("@azure/storage-blob");
+const router = express.Router();
+const responseModel = require("../models/ResponseModel");
+const { logger } = require("../jobLogger");
+const { uploadMessages } = require("../constants");
 
-const AZURE_STORAGE_CONNECTION_STRING =
-  process.env.AZURE_STORAGE_CONNECTION_STRING;
-const CONTAINER_NAME = "new"; // create this container in Azure portal
-
-const blobServiceClient = BlobServiceClient.fromConnectionString(
-  AZURE_STORAGE_CONNECTION_STRING,
-);
-const containerClient = blobServiceClient.getContainerClient(CONTAINER_NAME);
-
+// Multer in-memory storage
 const upload = multer({ storage: multer.memoryStorage() });
 
-router.post("/upload", upload.any(), async (req, res) => {
+// 📌 Upload API (Azure Storage)
+// Route to upload images
+router.post("/upload/:name", upload.any(), async (req, res) => {
   try {
-    console.log("Container URL:", containerClient);
-
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No file uploaded",
-      });
-    }
+    const { name } = req.params;
+    if (!req.files || req.files.length === 0)
+      return res
+        .status(400)
+        .json(new responseModel(false, uploadMessages.noFile));
 
     const uploadedFiles = [];
 
+    const AZURE_STORAGE_CONNECTION_STRING =
+      process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+    // Initialize Blob Service Client
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+      AZURE_STORAGE_CONNECTION_STRING,
+    );
+    const containerClient = blobServiceClient.getContainerClient(name);
+
+    if (!containerClient) {
+      throw new Error("Failed to get container client");
+    }
+
     for (const file of req.files) {
-      console.log("File received:", {
-        originalname: file.originalname,
-        mimetype: file.mimetype,
-        size: file.size,
-        hasBuffer: !!file.buffer,
-      });
       const blobName = `${Date.now()}-${file.originalname}`;
       const blockBlobClient = containerClient.getBlockBlobClient(blobName);
 
-      console.log("Uploading to:", blockBlobClient.url);
-
-      // Upload buffer directly
+      // Upload buffer
       await blockBlobClient.uploadData(file.buffer, {
         blobHTTPHeaders: { blobContentType: file.mimetype },
       });
 
-      // Public URL (works if container is set to "Blob" access level in Azure)
-      const fileUrl = blockBlobClient.url;
-
-      uploadedFiles.push(fileUrl);
+      // Public URL (only works if container access level is set to "Blob" or SAS token is used)
+      uploadedFiles.push(blockBlobClient.url);
     }
 
-    res.status(200).json({
-      success: true,
-      message: "File(s) uploaded successfully to Azure!",
-      files: uploadedFiles,
-    });
+    return res
+      .status(200)
+      .json(new responseModel(true, uploadMessages.success, uploadedFiles));
   } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
-  }
-});
-
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, "uploads"); // Save to 'uploads' folder
-//   },
-//   filename: (req, file, cb) => {
-//     const uniqueName = `${Date.now()}-${file.originalname}`;
-//     cb(null, uniqueName);
-//   },
-// });
-
-// const upload = multer({ storage });
-
-// Route to upload image
-router.post("/uploadss", upload.any(), (req, res) => {
-  try {
-    // Check if any files were uploaded
-    if (!req.files || req.files.length === 0) {
-      return res.status(400).json({
-        success: false,
-        message: "No file uploaded",
-      });
-    }
-
-    // Create URLs for all uploaded files
-    const fileInfos = req.files.map((file) => `/uploads/${file.filename}`);
-
-    res.status(200).json({
-      success: true,
-      message: "File(s) uploaded successfully!",
-      files: fileInfos,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: error.message,
-    });
+    logger.error("Azure upload error:", error);
+    return res
+      .status(500)
+      .json(new responseModel(false, uploadMessages.failure));
   }
 });
 

@@ -115,9 +115,9 @@ router.get(
             const finalPrice =
               p.offerPrice && p.offerPrice > 0 ? p.offerPrice : p.price;
             return `Product ${i + 1}:
-${p.productName} (${p.variantName})
-Qty: ${p.quantity}, ${p.type}: ${p.value} ${p.metrics}
-Price: ₹${finalPrice}`;
+            ${p.productName} (${p.variantName})
+            Qty: ${p.quantity}, ${p.type}: ${p.value} ${p.metrics}
+            Price: ₹${finalPrice}`;
           })
           .join("\n\n");
 
@@ -125,19 +125,19 @@ Price: ₹${finalPrice}`;
         const paymentDetails = PaymentDetails.paymentDetails?.[0];
         const paymentText = paymentDetails
           ? `Status: ${PaymentDetails.paymentStatus}
-Paid On: ${new Date(PaymentDetails.paidOn).toLocaleString("en-IN", { hour12: true })}
-Mode: ${paymentDetails.paymentMode}
-Txn: ${paymentDetails.transactionId}
-Amount: ₹${paymentDetails.amount}
-State: ${paymentDetails.state}`
+          Paid On: ${new Date(PaymentDetails.paidOn).toLocaleString("en-IN", { hour12: true })}
+          Mode: ${paymentDetails.paymentMode}
+          Txn: ${paymentDetails.transactionId}
+          Amount: ₹${paymentDetails.amount}
+          State: ${paymentDetails.state}`
           : `Status: ${PaymentDetails.paymentStatus || "Pending"}\nNo payment details.`;
 
         // Order details
         const orderDetails = `Order ID: ${id}
-Type: ${orderType}
-Status: ${status}
-Delivery: ${deliveryTime}
-Total: ₹${priceDetails.totalPrice}`;
+        Type: ${orderType}
+        Status: ${status}
+        Delivery: ${deliveryTime}
+        Total: ₹${priceDetails.totalPrice}`;
 
         return [
           orderDetails,
@@ -163,29 +163,36 @@ Total: ₹${priceDetails.totalPrice}`;
         rows,
       };
 
-      // Render table
       await doc.table(table, {
         prepareHeader: () => doc.font("Helvetica-Bold").fontSize(10),
         prepareRow: () => doc.font("Helvetica").fontSize(9),
         padding: 5,
         columnSpacing: 5,
-        border: {
-          // 👈 enable borders
-          top: true,
-          bottom: true,
-          left: true,
-          right: true,
-          color: "#000000", // border color
-          width: 0.5, // border thickness
+        width: 500,
+        divider: {
+          header: { disabled: false, width: 1, color: "#000000" }, // header bottom line
+          horizontal: { width: 1, color: "#000000" }, // between rows
+          vertical: { width: 1, color: "#000000" }, // between columns
+        },
+        options: {
+          border: {
+            top: true,
+            bottom: true,
+            left: true,
+            right: true,
+            width: 1,
+            color: "#000000",
+          },
+          // Some versions require 'options.border' instead of 'border' directly
         },
       });
 
       doc.end();
     } catch (err) {
       console.error(err);
-      res.status(500).send("Error generating PDF");
+      return res.status(500).send("Error while generating PDF");
     }
-  }
+  },
 );
 
 module.exports = router;

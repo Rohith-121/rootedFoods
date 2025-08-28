@@ -15,6 +15,7 @@ const ContainerIds = {
   StoreProduct: "StoreProduct",
   Subscriptions: "Subscriptions",
   Banners: "Banners",
+  Uploads: "uploads",
 };
 
 const roles = {
@@ -265,6 +266,12 @@ const bannerMessages = {
   notFound: "Banner not found",
 };
 
+const uploadMessages = {
+  success: "File uploaded successfully",
+  failure: "File upload failed",
+  noFile: "No file uploaded",
+};
+
 module.exports = {
   ContainerIds,
   otpMessages,
@@ -283,4 +290,5 @@ module.exports = {
   orderCategoriesMap,
   payments,
   bannerMessages,
+  uploadMessages,
 };

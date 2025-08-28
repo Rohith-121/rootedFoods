@@ -346,6 +346,7 @@ router.post("/orderCharges", authenticateToken, async (req, res) => {
     const total = baseAmount;
 
     const chargesList = [
+      { item: orderMessages.subTotal, value: total },
       {
         item: orderMessages.couponDiscount,
         value: -coupondiscount.discount || 0,
@@ -353,7 +354,6 @@ router.post("/orderCharges", authenticateToken, async (req, res) => {
       { item: orderMessages.deliveryCharges, value: deliveryCharges },
       { item: orderMessages.packagingCharges, value: packagingCharges },
       { item: orderMessages.platformCharges, value: platformCharges },
-      { item: orderMessages.subTotal, value: total },
     ];
 
     return res

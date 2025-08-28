@@ -9,12 +9,11 @@ const {
 } = require("../services/orderService");
 const { getIdbyStoreadmin } = require("../services/storeService");
 const { logger } = require("../jobLogger");
-const fs = require("fs").promises;
-const path = require("path");
 const client = new Redis({
   url: process.env.REDIS_HOST,
   token: process.env.REDIS_TOKEN,
 });
+const { BlobServiceClient } = require("@azure/storage-blob");
 
 (async () => {
   try {
@@ -185,14 +184,25 @@ const getAnalysticsByStoreAdmin = async (storeAdminId) => {
   }
 };
 
-async function deleteFile(fileName) {
+async function deleteFile(containerName, fileName) {
   try {
-    const filePath = path.join(__dirname, "../uploads", fileName);
-    await fs.unlink(filePath);
+    const AZURE_STORAGE_CONNECTION_STRING =
+      process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+    // Initialize client once (not inside function)
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+      AZURE_STORAGE_CONNECTION_STRING,
+    );
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+
+    // Delete blob if exists
+    await blockBlobClient.deleteIfExists();
+
     return true;
   } catch (error) {
     logger.error(commonMessages.errorOccured, error);
-    return false;
+    return true;
   }
 }
 

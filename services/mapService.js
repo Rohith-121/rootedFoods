@@ -4,7 +4,7 @@ const {
   fetchAllItems,
 } = require("../services/cosmosService");
 const axios = require("axios");
-const { ContainerIds, commonMessages, mapMessage } = require("../constants");
+const { ContainerIds, commonMessages } = require("../constants");
 const { logger } = require("../jobLogger");
 
 async function getNearestStore(origin) {
@@ -201,27 +201,47 @@ async function getCurentArea(address) {
     const response = await axios.get(url);
     const data = response.data;
 
-    if (data.status === "OK") {
-      const result = data.results[0];
+    if (data.status === "OK" && data.results.length > 0) {
+      const result = data.results.reduce((max, curr) =>
+        curr.address_components.length > max.address_components.length
+          ? curr
+          : max,
+      );
       const components = result.address_components;
+      const location = result.geometry.location;
+
+      let d_no = "";
+      let street = "";
+      let landmark = "";
       let city = "";
       let area = "";
+      let state = "";
+      let country = "";
+      let pincode = "";
 
-      components.forEach((component) => {
-        if (component.types.includes(mapMessage.locality)) {
-          city = component.long_name;
-        }
-
-        if (
-          component.types.includes(mapMessage.sublocality) ||
-          component.types.includes(mapMessage.neighbourhood)
-        ) {
-          area = component.long_name;
-        }
+      components.forEach((c) => {
+        if (c.types.includes("street_number") || c.types.includes("premise"))
+          d_no = c.long_name;
+        if (c.types.includes("sublocality_level_3")) street = c.long_name;
+        if (c.types.includes("route")) landmark = c.long_name;
+        if (c.types.includes("sublocality") || c.types.includes("neighborhood"))
+          area = c.long_name;
+        if (c.types.includes("locality")) city = c.long_name;
+        if (c.types.includes("administrative_area_level_1"))
+          state = c.long_name;
+        if (c.types.includes("country")) country = c.long_name;
+        if (c.types.includes("postal_code")) pincode = c.long_name;
       });
       const currentLocation = {
+        d_no,
+        street,
+        landmark,
         area,
         city,
+        state,
+        country,
+        pincode,
+        origin: `${location.lat},${location.lng}`,
       };
       return currentLocation;
     }

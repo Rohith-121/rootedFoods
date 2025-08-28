@@ -92,22 +92,20 @@ async function handleRole(role, userId, userotp) {
       case roles.StoreAdmin:
       case roles.SystemAdmin:
       case roles.StoreManager:
-        console.log("OTP:", userotp);
         var mailOption = {
           from: process.env.EMAIL,
           to: userId,
           subject: otpMessages.subject,
           text: otpMessages.email.replace(otpMessages.otp, userotp),
         };
-        console.log("Sending OTP:", mailOption);
-        // var mailResponse = await mail(mailOption);
-        // console.log("OTP sent:", mailResponse);
-        // if (mailResponse.error) {
-        //   return new responseModel(
-        //     false,
-        //     commonMessages.failed + mailResponse.error,
-        //   );
-        // }
+        var mailResponse = await mail(mailOption);
+        if (mailResponse.error) {
+          return new responseModel(
+            false,
+            commonMessages.failed + mailResponse.error,
+          );
+        }
+
         return new responseModel(true, otpMessages.sent);
       case roles.Customer:
       case roles.Driver:

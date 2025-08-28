@@ -55,12 +55,12 @@ router.post("/createOrder", authenticateToken, async (req, res) => {
     }
     const customerDetails = await getDetailsById(customerContainer, userId);
     let address = customerDetails.addresses.find(
-      (addr) => addr.origin === customerAddress,
+      (addr) => addr.id === customerAddress,
     );
     if (!address) {
       address = await getCurentArea(customerAddress);
     }
-    const storeDetails = await getNearestStore(customerAddress);
+    const storeDetails = await getNearestStore(address.origin);
     if (isSubscription) {
       if (!weeksCount || !scheduledDelivery)
         return res

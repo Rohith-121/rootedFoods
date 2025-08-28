@@ -160,7 +160,7 @@ router.post("/update", authenticateToken, async (req, res) => {
   }
 });
 
-router.get("/delete/:id", authenticateToken, async (req, res) => {
+router.delete("/delete/:id", authenticateToken, async (req, res) => {
   try {
     const { id } = req.user;
     const authorized = await isAuthorizedUser(id, [
@@ -190,7 +190,7 @@ router.get("/delete/:id", authenticateToken, async (req, res) => {
 
     const fileName = path.basename(bannerDetails.image);
 
-    const isFileDeleted = await deleteFile(fileName);
+    const isFileDeleted = await deleteFile(ContainerIds.Uploads, fileName);
 
     if (!isFileDeleted)
       return res
