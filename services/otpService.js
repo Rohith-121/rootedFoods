@@ -101,7 +101,7 @@ async function handleRole(role, userId, userotp) {
         };
         console.log("Sending OTP");
         var mailResponse = await mail(mailOption);
-        console.log("OTP sent:", mail Response);
+        console.log("OTP sent:", mailResponse);
         if (mailResponse.error) {
           return new responseModel(
             false,
