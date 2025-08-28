@@ -1071,7 +1071,7 @@ router.post("/getProducts", async (req, res) => {
 
     return res.status(200).json(
       new responseModel(true, productMessages.success, {
-        products: requstedProducts,
+        products: requstedProducts ?? [],
         page,
         hasNextPage,
       }),
