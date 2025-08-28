@@ -110,6 +110,8 @@ router.post("/signup", async (req, res) => {
 
 router.post("/login", async (req, res) => {
   try {
+
+    console.log("Login Requested:" req.body);
     const result = await createDynamicSchema(adminSchema, req.body);
 
     if (!result.success) return res.status(400).json(result);
@@ -131,8 +133,10 @@ router.post("/login", async (req, res) => {
         .status(400)
         .json(new responseModel(false, userMessages.invalidCredientials));
 
+    console.log("User verified Successfully");
     const response = await OTPGeneration(email, roles.StoreAdmin);
 
+    console.log("OTP sent Successfully");
     if (!response.success) return res.status(500).json(response);
 
     return res.status(200).json(new responseModel(true, userMessages.loggedIn));
