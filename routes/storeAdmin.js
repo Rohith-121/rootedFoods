@@ -111,7 +111,7 @@ router.post("/signup", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
 
-    console.log("Login Requested:" req.body);
+    console.log("Login Requested:", req.body);
     const result = await createDynamicSchema(adminSchema, req.body);
 
     if (!result.success) return res.status(400).json(result);
