@@ -98,14 +98,14 @@ async function handleRole(role, userId, userotp) {
           subject: otpMessages.subject,
           text: otpMessages.email.replace(otpMessages.otp, userotp),
         };
-        var mailResponse = await mail(mailOption);
-        if (mailResponse.error) {
-          return new responseModel(
-            false,
-            commonMessages.failed + mailResponse.error,
-          );
-        }
-
+        // var mailResponse = await mail(mailOption);
+        // if (mailResponse.error) {
+        //   return new responseModel(
+        //     false,
+        //     commonMessages.failed + mailResponse.error,
+        //   );
+        // }
+        console.log("Mail Option:", mailOption);
         return new responseModel(true, otpMessages.sent);
       case roles.Customer:
       case roles.Driver:
