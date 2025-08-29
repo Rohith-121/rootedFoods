@@ -12,6 +12,8 @@ const {
   productMessages,
   commonMessages,
 } = require("../constants");
+const { deleteFile } = require("../services/userService");
+const path = require("path");
 const { logger } = require("../jobLogger");
 
 const addProductTostores = async (product) => {
@@ -454,6 +456,26 @@ async function removeVariantFromInventory(productId, variantId) {
   }
 }
 
+async function deleteImages(imageUrls) {
+  try {
+    if (!Array.isArray(imageUrls) || imageUrls.length === 0) {
+      return false;
+    }
+    await Promise.all(
+      imageUrls.map(async (imageUrl) => {
+        if (imageUrl) {
+          const fileName = path.basename(imageUrl);
+          await deleteFile(ContainerIds.blobProducts, fileName);
+        }
+      }),
+    );
+    return true;
+  } catch (error) {
+    logger.error(commonMessages.errorOccured, error);
+    return false;
+  }
+}
+
 module.exports = {
   addProductTostores,
   addStoreProducts,
@@ -466,4 +488,5 @@ module.exports = {
   getIdbyStoreadmin,
   deleteProductFromInventories,
   removeVariantFromInventory,
+  deleteImages,
 };
