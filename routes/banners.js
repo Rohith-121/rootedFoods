@@ -190,12 +190,7 @@ router.delete("/delete/:id", authenticateToken, async (req, res) => {
 
     const fileName = path.basename(bannerDetails.image);
 
-    const isFileDeleted = await deleteFile(ContainerIds.Uploads, fileName);
-
-    if (!isFileDeleted)
-      return res
-        .status(500)
-        .json(new responseModel(false, commonMessages.failed));
+    deleteFile(ContainerIds.Uploads, fileName);
 
     const deleteBanner = await deleteRecord(bannerContainer, bannerDetails.id);
 

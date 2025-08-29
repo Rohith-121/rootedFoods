@@ -17,6 +17,7 @@ const {
   getProductAvailability,
   deleteProductFromInventories,
   removeVariantFromInventory,
+  deleteImages,
 } = require("../services/storeService");
 const responseModel = require("../models/ResponseModel");
 const {
@@ -902,6 +903,13 @@ router.delete(
         return res
           .status(404)
           .json(new responseModel(false, productMessages.variant.notFound));
+      }
+      const variantData = product.variants[variantIndex];
+      if (variantData.images && variantData.images.length > 0) {
+        const imageDeletion = await deleteImages(variantData.images);
+        if (!imageDeletion.success) {
+          logger.error("Failed to delete images for variant:", variantId);
+        }
       }
       const isDefault = product.variants[variantIndex].isdefault;
 

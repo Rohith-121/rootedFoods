@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const PDFDocument = require("pdfkit-table");
 const { getContainer } = require("../services/cosmosService");
-const { ContainerIds } = require("../constants");
+const { ContainerIds, orderTypesMap } = require("../constants");
 
 const orderContainer = getContainer(ContainerIds.Order);
 
@@ -11,6 +11,8 @@ router.get(
   async (req, res) => {
     try {
       const { orderType, orderStatus, date } = req.params;
+
+      const orderStatuses = orderTypesMap[orderStatus.toLowerCase()] || [];
 
       const querySpec = {
         query: `
@@ -38,12 +40,12 @@ router.get(
             AND STARTSWITH(c.createdOn, @date)
         ))
         AND (@orderType != "" AND c.orderType = @orderType)
-        AND (@orderStatus != "" AND c.status = @orderStatus)
+        AND ARRAY_CONTAINS(@orderStatuses, c.status)
        `,
         parameters: [
           { name: "@orderType", value: orderType },
           { name: "@date", value: date },
-          { name: "@orderStatus", value: orderStatus },
+          { name: "@orderStatuses", value: orderStatuses },
         ],
       };
 
@@ -151,7 +153,7 @@ router.get(
 
       // Build table
       const table = {
-        title: "Orders",
+        title: `Order Type: ${orderType}, Order Status: ${orderStatus}, Date: ${date.split("-").reverse().join("-")}`,
         headers: [
           { label: "Order Details", property: "orderDetails", width: 90 },
           { label: "Customer Details", property: "customer", width: 80 },

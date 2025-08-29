@@ -15,6 +15,7 @@ const ContainerIds = {
   StoreProduct: "StoreProduct",
   Subscriptions: "Subscriptions",
   Banners: "Banners",
+  blobProducts: "products",
   Uploads: "uploads",
 };
 
@@ -238,11 +239,11 @@ const orderTypesMap = {
   active: [
     "New",
     "Accepted",
-    "Order packed",
-    "Driver assigned",
-    "Driver accepted",
-    "Order picked up",
-    "Out for delivery",
+    "Order Packed",
+    "Driver Assigned",
+    "Driver Accepted",
+    "Order Picked Up",
+    "Out for Delivery",
   ],
   cancelled: ["Cancelled", "Rejected"],
   delivered: ["Delivered"],
