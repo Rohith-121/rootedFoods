@@ -110,17 +110,10 @@ router.post("/update", authenticateToken, async (req, res) => {
         .json(new responseModel(false, commonMessages.invalidFields, errors));
     }
 
-    const {
-      id: bannerId,
-      bannerName,
-      image,
-      screenName,
-      params,
-      dynamic,
-      isActive,
-    } = result.data;
-
-    const existingBanner = await getDetailsById(bannerContainer, bannerId);
+    const existingBanner = await getDetailsById(
+      bannerContainer,
+      result.data.id,
+    );
 
     if (!existingBanner) {
       return res
@@ -133,17 +126,13 @@ router.post("/update", authenticateToken, async (req, res) => {
         .status(400)
         .json(new responseModel(false, commonMessages.unauthorized));
 
-    const updatedBanner = {
-      ...existingBanner,
-      bannerName,
-      image,
-      screenName,
-      params,
-      dynamic,
-      isActive,
-    };
+    Object.keys(req.body).forEach((key) => {
+      if (!["id", "createdOn"].includes(key)) {
+        existingBanner[key] = req.body[key];
+      }
+    });
 
-    const isUpdated = await updateRecord(bannerContainer, updatedBanner);
+    const isUpdated = await updateRecord(bannerContainer, existingBanner);
 
     if (!isUpdated) {
       return res
