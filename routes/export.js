@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 const PDFDocument = require("pdfkit-table");
 const { getContainer } = require("../services/cosmosService");
+const responseModel = require("../models/ResponseModel");
 const { ContainerIds, orderTypesMap } = require("../constants");
 const orderContainer = getContainer(ContainerIds.Order);
-const responseModel = require("../models/ResponseModel");
 
 router.get(
   "/download-pdf-for-orders/:orderType/:orderStatus/:date",
@@ -54,7 +54,11 @@ router.get(
         .fetchAll();
 
       if (!resources || resources.length === 0)
-        return res.status(404).json(new responseModel(false, "No orders found for the given filters."));
+        return res
+          .status(200)
+          .json(
+            new responseModel(false, "No orders found for the given filters."),
+          );
 
       // Create PDF doc
       const doc = new PDFDocument({
@@ -204,7 +208,9 @@ router.get(
       doc.end();
     } catch (err) {
       console.error(err);
-      return res.status(500).json(new responseModel(false, "Error while generating PDF"));
+      return res
+        .status(500)
+        .json(new responseModel(false, "Error while generating PDF"));
     }
   },
 );
