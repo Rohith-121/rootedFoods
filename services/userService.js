@@ -13,7 +13,6 @@ const client = new Redis({
   url: process.env.REDIS_HOST,
   token: process.env.REDIS_TOKEN,
 });
-const { BlobServiceClient } = require("@azure/storage-blob");
 
 (async () => {
   try {
@@ -184,28 +183,6 @@ const getAnalysticsByStoreAdmin = async (storeAdminId) => {
   }
 };
 
-async function deleteFile(containerName, fileName) {
-  try {
-    const AZURE_STORAGE_CONNECTION_STRING =
-      process.env.AZURE_STORAGE_CONNECTION_STRING;
-
-    // Initialize client once (not inside function)
-    const blobServiceClient = BlobServiceClient.fromConnectionString(
-      AZURE_STORAGE_CONNECTION_STRING,
-    );
-    const containerClient = blobServiceClient.getContainerClient(containerName);
-    const blockBlobClient = containerClient.getBlockBlobClient(fileName);
-
-    // Delete blob if exists
-    await blockBlobClient.deleteIfExists();
-
-    return true;
-  } catch (error) {
-    logger.error(commonMessages.errorOccured, error);
-    return true;
-  }
-}
-
 module.exports = {
   setUserInCache,
   getUserCache,
@@ -215,5 +192,4 @@ module.exports = {
   getAnalysticsByStoreAdmin,
   getDriversByStoreAdmin,
   getManagersByStoreAdmin,
-  deleteFile,
 };

@@ -5,6 +5,7 @@ const {
   createRecord,
   updateRecord,
   getDetailsById,
+  deleteFile,
 } = require("../services/cosmosService");
 const responseModel = require("../models/ResponseModel");
 const {
@@ -12,7 +13,6 @@ const {
   productMessages,
   commonMessages,
 } = require("../constants");
-const { deleteFile } = require("../services/userService");
 const path = require("path");
 const { logger } = require("../jobLogger");
 

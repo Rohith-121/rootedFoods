@@ -5,6 +5,7 @@ const key = process.env.COSMOS_DB_KEY;
 const client = new CosmosClient({ endpoint, key });
 const databaseId = process.env.COSMOS_DB_NAME;
 const { logger } = require("../jobLogger");
+const { BlobServiceClient } = require("@azure/storage-blob");
 
 const createContainerIfNotExist = async (containerId) => {
   try {
@@ -219,6 +220,28 @@ function parseCreatedOn(dateStr) {
   return new Date(year, month, parseInt(day), hours, minutes);
 }
 
+async function deleteFile(containerName, fileName) {
+  try {
+    const AZURE_STORAGE_CONNECTION_STRING =
+      process.env.AZURE_STORAGE_CONNECTION_STRING;
+
+    // Initialize client once (not inside function)
+    const blobServiceClient = BlobServiceClient.fromConnectionString(
+      AZURE_STORAGE_CONNECTION_STRING,
+    );
+    const containerClient = blobServiceClient.getContainerClient(containerName);
+    const blockBlobClient = containerClient.getBlockBlobClient(fileName);
+
+    // Delete blob if exists
+    await blockBlobClient.deleteIfExists();
+
+    return true;
+  } catch (error) {
+    logger.error(commonMessages.errorOccured, error);
+    return true;
+  }
+}
+
 module.exports = {
   getContainer,
   fetchAllItems,
@@ -233,4 +256,5 @@ module.exports = {
   getDataByQuery,
   getUsersByExpiryDate,
   parseCreatedOn,
+  deleteFile,
 };
