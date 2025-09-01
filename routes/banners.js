@@ -14,9 +14,9 @@ const {
   deleteRecord,
   getContainer,
   getDetailsById,
+  deleteFile,
 } = require("../services/cosmosService");
 const path = require("path");
-const { deleteFile } = require("../services/userService");
 const bannerContainer = getContainer(ContainerIds.Banners);
 const responseModel = require("../models/ResponseModel");
 const { v4: uuidv4 } = require("uuid");
