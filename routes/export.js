@@ -29,16 +29,9 @@ router.get(
           c.createdOn
         FROM c
         WHERE    
-        ((
-            IS_DEFINED(c.scheduledDelivery) 
-            AND c.scheduledDelivery != "" 
-            AND STARTSWITH(c.scheduledDelivery, @date)
-        )
+        ((IS_DEFINED(c.scheduledDelivery) AND c.scheduledDelivery != "" AND STARTSWITH(c.scheduledDelivery, @date))
         OR
-        (
-            (c.scheduledDelivery = "")
-            AND STARTSWITH(c.createdOn, @date)
-        ))
+        ((c.scheduledDelivery = "") AND STARTSWITH(c.createdOn, @date)))
         AND (@orderType != "" AND c.orderType = @orderType)
         AND ARRAY_CONTAINS(@orderStatuses, c.status)
        `,
@@ -80,8 +73,8 @@ router.get(
 
       doc.moveDown(1);
 
-      // Prepare table rows
-      const rows = resources.map((order) => {
+      // Prepare table rows (Fix 1: Split products into separate rows)
+      const rows = resources.flatMap((order) => {
         const {
           id,
           customerDetails,
@@ -128,32 +121,19 @@ router.get(
           .map(([key, value]) => `${keyMap[key] || key}: ${value}`)
           .join("\n");
 
-        // Products
-        const productText = productDetails
-          .map((p, i) => {
-            const finalPrice =
-              p.offerPrice && p.offerPrice > 0 ? p.offerPrice : p.price;
-            return (
-              `Product ${i + 1}:\n` +
-              `Product Name: ${p.productName}  (${p.variantName}),\n` +
-              `Quantity: ${p.quantity},\n` +
-              `${p.type}: ${p.value} ${p.metrics},\n` +
-              `Price: Rs. ${finalPrice}`
-            );
-          })
-          .join("\n\n");
-
         // Payment
         const paymentDetails = PaymentDetails.paymentDetails?.[0];
         const paymentText = paymentDetails
           ? `Status: ${PaymentDetails.paymentStatus}\n` +
-            `Paid On: ${new Date(PaymentDetails.paidOn).toLocaleString("en-IN", { hour12: true })}\n` +
+            `Paid On: ${new Date(PaymentDetails.paidOn).toLocaleString("en-IN", {
+              hour12: true,
+            })}\n` +
             `Mode: ${paymentDetails.paymentMode}\n` +
             `Txn: ${paymentDetails.transactionId}\n` +
             `Amount: Rs. ${paymentDetails.amount}`
           : `Status: ${PaymentDetails.paymentStatus || "Pending"}\nNo payment details.`;
 
-        // Order details
+        // Order details (shown only on first row for that order)
         const orderDetails =
           `Order ID: ${id}\n` +
           `Type: ${orderType}\n` +
@@ -161,22 +141,39 @@ router.get(
           `Delivery: ${deliveryTime}\n` +
           `Total: Rs. ${priceDetails.totalPrice}`;
 
-        return [
-          orderDetails,
-          storeText,
-          productText,
-          customerText,
-          addressText,
-          paymentText,
-        ];
+        // 🔑 Create separate row for each product
+        return productDetails.map((p, i) => {
+          const finalPrice =
+            p.offerPrice && p.offerPrice > 0 ? p.offerPrice : p.price;
+
+          const productText =
+            `Product ${i + 1}:\n` +
+            `Product Name: ${p.productName} (${p.variantName}),\n` +
+            `Quantity: ${p.quantity},\n` +
+            `${p.type}: ${p.value} ${p.metrics},\n` +
+            `Price: Rs. ${finalPrice}`;
+
+          return [
+            i === 0 ? orderDetails : "", // show order details only in first product row
+            i === 0 ? storeText : "",
+            productText,
+            i === 0 ? customerText : "",
+            i === 0 ? addressText : "",
+            i === 0 ? paymentText : "",
+          ];
+        });
       });
 
+      // Subtitle
       doc
-        .font("Helvetica-Bold") // make bold
-        .fontSize(16) // bigger text
+        .font("Helvetica-Bold")
+        .fontSize(16)
         .text(
-          `Order Type: ${orderType}, Order Status: ${orderStatus}, Date: ${date.split("-").reverse().join("-")}`,
-          { align: "center" }, // center align
+          `Order Type: ${orderType}, Order Status: ${orderStatus}, Date: ${date
+            .split("-")
+            .reverse()
+            .join("-")}`,
+          { align: "center" },
         );
 
       doc.moveDown(1);
@@ -199,9 +196,9 @@ router.get(
         prepareRow: () => doc.font("Helvetica").fontSize(9),
         width: doc.page.width - doc.page.margins.left - doc.page.margins.right,
         divider: {
-          header: { disabled: false, width: 1, color: "#000000" }, // header bottom line
-          horizontal: { width: 1, color: "#000000" }, // between rows
-          vertical: { width: 1, color: "#000000" }, // between columns
+          header: { disabled: false, width: 1, color: "#000000" },
+          horizontal: { width: 1, color: "#000000" },
+          vertical: { width: 1, color: "#000000" },
         },
       });
 
