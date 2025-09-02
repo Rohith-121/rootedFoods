@@ -119,7 +119,7 @@ async function processCoupon(couponName, customerId, cartTotal) {
     ) {
       discount = couponDetails.maxCouponAmount;
     }
-
+    discount = parseFloat(discount.toFixed(2));
     return {
       success: true,
       discount,

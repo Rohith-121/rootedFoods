@@ -311,7 +311,7 @@ async function getEnrichedProductDetails(products, storeId) {
     );
 
     subTotal = itemTotals.reduce((sum, total) => sum + total, 0);
-
+    subTotal = parseFloat(subTotal.toFixed(2)); 
     return {
       products,
       subTotal,
@@ -388,10 +388,10 @@ async function getOrderStatusCounts(storeAdminId) {
 
     const querySpec = {
       query: `
-        SELECT c.status AS status, COUNT(1) AS count, c.orderPrice, c.createdOn
+        SELECT c.status AS status, COUNT(1) AS count, c.priceDetails.totalPrice, c.createdOn
         FROM c
         WHERE IS_DEFINED(c.status) AND c.storeAdminId = @storeAdmin
-        GROUP BY c.status, c.orderPrice, c.createdOn
+        GROUP BY c.status, c.priceDetails.totalPrice, c.createdOn
       `,
       parameters: [{ name: "@storeAdmin", value: storeAdminId }],
     };
@@ -421,7 +421,7 @@ async function getOrderStatusCounts(storeAdminId) {
 
     const allOrdersQuery = {
       query: `
-        SELECT c.orderPrice, c.createdOn, c.PaymentDetails, c.refundDetails
+        SELECT c.priceDetails, c.createdOn, c.PaymentDetails, c.refundDetails
         FROM c
         WHERE c.storeAdminId = @storeAdmin
         AND c.PaymentDetails.paymentStatus = "COMPLETED"
@@ -438,10 +438,10 @@ async function getOrderStatusCounts(storeAdminId) {
     allOrders.forEach((tx) => {
       if (!tx.createdOn) return;
 
-      const createdOnDate = parseCreatedOn(tx.createdOn);
+      const createdOnDate = new Date(tx.createdOn);
       if (!createdOnDate) return;
 
-      const orderPrice = tx.orderPrice || 0;
+      const orderPrice = tx.priceDetails?.totalPrice || 0;
       totalPayments += orderPrice;
       currentYearPayments += orderPrice;
 
