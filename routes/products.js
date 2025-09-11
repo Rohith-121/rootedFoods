@@ -369,6 +369,77 @@ router.post("/createCategory", authenticateToken, async (req, res) => {
   }
 });
 
+router.put("/updateCategory", authenticateToken, async (req, res) => {
+  try {
+    const authorized = await isAuthorizedUser(req.user.id, [
+      roles.SystemAdmin,
+      roles.StoreAdmin,
+    ]);
+    if (!authorized) {
+      return res
+        .status(401)
+        .json(new responseModel(false, commonMessages.unauthorized));
+    }
+    const id = req.body.id;
+    const existingItem = await getDetailsById(categoryContainer, id);
+    if (!existingItem) {
+      return res
+        .status(404)
+        .json(new responseModel(false, commonMessages.notFound));
+    }
+    Object.keys(req.body).forEach((key) => {
+      if (!["id", "createdOn"].includes(key)) {
+        existingItem[key] = req.body[key];
+      }
+    });
+
+    const updatedCategory = await updateRecord(categoryContainer, existingItem);
+    if (!updatedCategory) {
+      return res
+        .status(500)
+        .json(new responseModel(false, commonMessages.failed));
+    }
+
+    return res
+      .status(200)
+      .json(new responseModel(true, commonMessages.success, updatedCategory));
+  } catch (error) {
+    logger.error(commonMessages.errorOccured, error);
+    return res.status(500).json(new responseModel(false, error.message));
+  }
+});
+
+router.delete("/deleteCategory/:id", authenticateToken, async (req, res) => {
+  try {
+    const authorized = await isAuthorizedUser(req.user.id, [
+      roles.SystemAdmin,
+      roles.StoreAdmin,
+    ]);
+    if (!authorized) {
+      return res
+        .status(401)
+        .json(new responseModel(false, commonMessages.unauthorized));
+    }
+    const categoryId = req.params.id;
+    if (!categoryId) {
+      return res
+        .status(400)
+        .json(new responseModel(false, commonMessages.badRequest));
+    }
+    const deletedCategory = await deleteRecord(categoryContainer, categoryId);
+    if (!deletedCategory) {
+      return res
+        .status(500)
+        .json(new responseModel(false, commonMessages.failed));
+    }
+    return res
+      .status(200)
+      .json(new responseModel(true, commonMessages.success));
+  } catch (error) {
+    logger.error(commonMessages.errorOccured, error);
+  }
+});
+
 router.get("/storeInventory/:id", async (req, res) => {
   try {
     const productId = req.params.id;

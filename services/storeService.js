@@ -6,6 +6,7 @@ const {
   updateRecord,
   getDetailsById,
   deleteFile,
+  deleteRecord,
 } = require("../services/cosmosService");
 const responseModel = require("../models/ResponseModel");
 const {
@@ -476,6 +477,41 @@ async function deleteImages(imageUrls) {
   }
 }
 
+async function deleteInventory(storeId) {
+  try {
+    const inventoryId = await getInventoryId(storeId);
+    if (!inventoryId) {
+      return false;
+    }
+    const storeProductContainer = getContainer(ContainerIds.StoreProduct);
+    const deleted = await deleteRecord(storeProductContainer, inventoryId);
+    return deleted;
+  } catch (error) {
+    logger.error(commonMessages.errorOccured, error);
+    return false;
+  }
+}
+
+async function getInventoryId(storeId) {
+  try {
+    const inventoryContainer = getContainer(ContainerIds.StoreProduct);
+    const querySpec = {
+      query: "SELECT c.id FROM c WHERE c.storeId = @storeId",
+      parameters: [{ name: "@storeId", value: storeId }],
+    };
+    const { resources } = await inventoryContainer.items
+      .query(querySpec)
+      .fetchAll();
+    if (!resources || resources.length === 0) {
+      return null;
+    }
+    return resources[0].id;
+  } catch (error) {
+    logger.error(commonMessages.errorOccured, error);
+    return null;
+  }
+}
+
 module.exports = {
   addProductTostores,
   addStoreProducts,
@@ -489,4 +525,5 @@ module.exports = {
   deleteProductFromInventories,
   removeVariantFromInventory,
   deleteImages,
+  deleteInventory,
 };

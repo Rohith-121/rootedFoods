@@ -290,48 +290,80 @@ const refundProcess = async (req, res) => {
   try {
     const orderId = req.params.orderId;
     const order = await findOrder(orderId);
-    if (!order) {
+    if (!order)
       return res
         .status(404)
         .json(new responseModel(false, orderMessages.orderNotfound));
-    }
-    if (req.user.id !== order.storeAdminId) {
+    if (req.user.id !== order.storeAdminId)
       return res
         .status(403)
         .json(new responseModel(false, authMessage.unauthorizedAccess));
-    }
-    if (order.PaymentDetails.paymentStatus !== "COMPLETED") {
+    if (order.PaymentDetails.paymentStatus !== "COMPLETED")
       return res
         .status(400)
         .json(new responseModel(false, paymentMessages.paymentPending));
-    }
-    const request = RefundRequest.builder()
-      .amount(order.orderPrice * 100)
-      .merchantRefundId(order.id)
-      .originalMerchantOrderId(order.PaymentDetails.transactionId)
-      .build();
-    const response = await client.refund(request);
-    if (response) {
-      await orderContainer.item(order.id, order.id).patch([
-        {
-          op: "add",
-          path: "/refundDetails",
-          value: {
-            transactionId: response.refundId,
-            refundStatus: response.state,
-            refundedOn: new Date().toISOString(),
-          },
-        },
-      ]);
-    } else {
+
+    const paymentDetails = order.PaymentDetails.paymentDetails[0];
+
+    const originalMerchantOrderId =
+      paymentDetails?.transactionId || order.merchantOrderId || order.id;
+
+    if (!originalMerchantOrderId) {
       return res
-        .status(500)
-        .json(new responseModel(false, paymentMessages.refundFailed, response));
+        .status(400)
+        .json(new responseModel(false, paymentMessages.refundFailed));
     }
 
+    const refundAmount = Math.round(order.priceDetails.totalPrice * 100);
+    if (refundAmount < 100) {
+      return res
+        .status(400)
+        .json(
+          new responseModel(
+            false,
+            "Refund amount below minimum allowed (100 paise)",
+          ),
+        );
+    }
+
+    const merchantRefundId = `refund_${Date.now()}`;
+    const request = RefundRequest.builder()
+      .amount(refundAmount)
+      .merchantRefundId(merchantRefundId)
+      .originalMerchantOrderId(originalMerchantOrderId)
+      .build();
+
+    const refundResponse = await client.refund(request);
+    console.log("refundResponse:", refundResponse);
+
+    if (!refundResponse || !refundResponse.refundId) {
+      return res
+        .status(500)
+        .json(
+          new responseModel(
+            false,
+            paymentMessages.refundFailed,
+            refundResponse,
+          ),
+        );
+    }
+
+    await orderContainer.item(order.id, order.id).patch([
+      {
+        op: "add",
+        path: "/refundDetails",
+        value: {
+          refundId: refundResponse.refundId,
+          refundStatus: refundResponse.state,
+          refundedOn: new Date().toISOString(),
+        },
+      },
+    ]);
     return res
       .status(200)
-      .json(new responseModel(true, paymentMessages.refundSuccess, response));
+      .json(
+        new responseModel(true, paymentMessages.refundSuccess, refundResponse),
+      );
   } catch (error) {
     logger.error(commonMessages.errorOccured, error);
     return res.status(500).json(new responseModel(false, error.message));

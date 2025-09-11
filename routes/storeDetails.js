@@ -10,10 +10,12 @@ const {
   getDetailsById,
   fetchAllItems,
   updateRecord,
+  deleteRecord,
 } = require("../services/cosmosService");
 const {
   addStoreProducts,
   getStoresByStoreAdminId,
+  deleteInventory,
 } = require("../services/storeService");
 const {
   ContainerIds,
@@ -258,6 +260,35 @@ router.get("/getStoresByStoreAdminId", authenticateToken, async (req, res) => {
     return res
       .status(200)
       .json(new responseModel(true, storeMessage.storesFetched, stores));
+  } catch (error) {
+    logger.error(commonMessages.errorOccured, error);
+    return res.status(500).json(new responseModel(false, error.message));
+  }
+});
+
+router.delete("/delete/:storeId", authenticateToken, async (req, res) => {
+  try {
+    const { id } = req.user;
+    const authorized = await isAuthorizedUser(id, [
+      roles.SystemAdmin,
+      roles.StoreAdmin,
+    ]);
+    if (!authorized) {
+      return res
+        .status(401)
+        .json(new responseModel(false, commonMessages.unauthorized));
+    }
+
+    const storeId = req.params.storeId;
+
+    const store = await deleteRecord(storeContainer, storeId);
+    const inventoryDelete = await deleteInventory(storeId);
+
+    if (!store || !inventoryDelete)
+      return res
+        .status(404)
+        .json(new responseModel(false, commonMessages.failed));
+    return res.status(200).json(new responseModel(true, storeMessage.deleted));
   } catch (error) {
     logger.error(commonMessages.errorOccured, error);
     return res.status(500).json(new responseModel(false, error.message));

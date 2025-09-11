@@ -143,6 +143,7 @@ const storeMessage = {
     active: "Active",
     inActive: "InActive",
   },
+  deleted: "Store deleted successfully",
 };
 
 const orderMessages = {

@@ -4,7 +4,6 @@ const {
   getDataByQuery,
   createRecord,
   getUserDetails,
-  parseCreatedOn,
 } = require("../services/cosmosService");
 const {
   applyCouponAndUpdate,
@@ -311,7 +310,7 @@ async function getEnrichedProductDetails(products, storeId) {
     );
 
     subTotal = itemTotals.reduce((sum, total) => sum + total, 0);
-    subTotal = parseFloat(subTotal.toFixed(2)); 
+    subTotal = parseFloat(subTotal.toFixed(2));
     return {
       products,
       subTotal,

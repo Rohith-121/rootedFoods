@@ -125,9 +125,12 @@ router.get(
         const paymentDetails = PaymentDetails.paymentDetails?.[0];
         const paymentText = paymentDetails
           ? `Status: ${PaymentDetails.paymentStatus}\n` +
-            `Paid On: ${new Date(PaymentDetails.paidOn).toLocaleString("en-IN", {
-              hour12: true,
-            })}\n` +
+            `Paid On: ${new Date(PaymentDetails.paidOn).toLocaleString(
+              "en-IN",
+              {
+                hour12: true,
+              },
+            )}\n` +
             `Mode: ${paymentDetails.paymentMode}\n` +
             `Txn: ${paymentDetails.transactionId}\n` +
             `Amount: Rs. ${paymentDetails.amount}`
