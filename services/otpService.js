@@ -4,7 +4,7 @@ const {
   createRecord,
 } = require("../services/cosmosService");
 const { v4: uuidv4 } = require("uuid");
-// const Randomstring = require("randomstring");
+const Randomstring = require("randomstring");
 const responseModel = require("../models/ResponseModel");
 // const { mail } = require("../utils/mail");
 const {
@@ -13,24 +13,25 @@ const {
   otpMessages,
   commonMessages,
   userMessages,
+  msg91TemplateIds,
+  msg91Templates,
 } = require("../constants");
 const jwt = require("jsonwebtoken");
 const { logger } = require("../jobLogger");
+const axios = require("axios");
 
-// function generateOtp() {
-//   try {
-//     // return Randomstring.generate({ length: 6, charset: "numeric" });
-//     return "111111";
-//   } catch {
-//     return "645456";
-//   }
-// }
+function generateOtp() {
+  try {
+    return Randomstring.generate({ length: 6, charset: "numeric" });
+  } catch {
+    return "645456";
+  }
+}
 
 async function OTPGeneration(userId, role) {
   try {
     const container = getContainer(ContainerIds.OTP);
-    // const otp = generateOtp();
-    const otp = "111111";
+    const otp = generateOtp();
     const OTP_EXPIRY_MS = 5 * 60 * 1000;
 
     let userotp = "";
@@ -105,16 +106,29 @@ async function handleRole(role, userId, userotp) {
         //     commonMessages.failed + mailResponse.error,
         //   );
         // }
-
         return new responseModel(true, otpMessages.sent);
       case roles.Customer:
       case roles.Driver:
+        var options = {
+          method: "POST",
+          url: process.env.msg91Url,
+          headers: {
+            accept: "application/json",
+            authkey: process.env.msg91AuthKey,
+            "content-type": "application/json",
+          },
+          data: msg91Templates.otpSMS
+            .replace("{templateId}", msg91TemplateIds.otpTemplateId)
+            .replace("{otp}", userotp)
+            .replace("{phone}", userId),
+        };
+        await axios.request(options);
         return new responseModel(true, otpMessages.sent);
       default:
         return new responseModel(false, userMessages.invalid);
     }
   } catch (error) {
-    logger.error(commonMessages.errorOccured, error);
+    console.error(commonMessages.errorOccured, error);
     return new responseModel(false, error.message);
   }
 }

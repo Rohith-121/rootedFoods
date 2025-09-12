@@ -26,7 +26,10 @@ const {
   authMessage,
   orderCategoriesMap,
   payments,
+  msg91Templates,
+  msg91TemplateIds,
 } = require("../constants");
+const axios = require("axios");
 const CLIENT_ID = process.env.CLIENT_ID;
 const CLIENT_SECRET = process.env.CLIENT_SCERET;
 const clientVirtion = 1;
@@ -100,22 +103,13 @@ const handlePaymentStatus = async (req, res) => {
       );
     }
 
-    const status =  await handleNormalOrderPayment(
+    return await handleNormalOrderPayment(
       orderId,
       paymentDetails,
       paymentState,
       payload,
       res,
     );
-
-    console.log("Order ID:", orderId);
-
-    console.log("Order Type:", orderType);
-    console.log("Payment State:", paymentState);
-    console.log("Payment Details:", paymentDetails);
-    console.log("response Payload:", payload);
-    console.log("Payemnt Status", status);
-    return status;
   } catch (error) {
     logger.error(commonMessages.errorOccured, error);
     return res
@@ -213,6 +207,29 @@ const handleNormalOrderPayment = async (
 
   if (paymentState === "COMPLETED") {
     await updateProductQuantities(order);
+
+    var options = {
+      method: "POST",
+      url: process.env.msg91Url,
+      headers: {
+        accept: "application/json",
+        authkey: process.env.msg91AuthKey,
+        "content-type": "application/json",
+      },
+
+      data: msg91Templates.orderSMS
+        .replace("{templateId}", msg91TemplateIds.orderTemplateId)
+        .replace("{phone}", order.customerDetails.phone)
+        .replace("{orderId}", orderId)
+        .replace("{paymentStatus}", paymentState)
+        .replace("{amount}", paymentDetails.amount)
+        .replace(
+          "{deliveryDate}",
+          dayjs(order.scheduledDelivery).format("DD-MM-YYYY HH:mmA"),
+        ),
+    };
+
+    await axios.request(options);
   }
 
   await orderContainer.item(order.id, order.id).replace(order);
