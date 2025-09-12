@@ -112,9 +112,9 @@ const handlePaymentStatus = async (req, res) => {
 
     console.log("Order Type:", orderType);
     console.log("Payment State:", paymentState);
-    console.log("Payment Details:", paymentDetails,);
+    console.log("Payment Details:", paymentDetails);
     console.log("response Payload:", payload);
-    console.log(status);
+    console.log("Payemnt Status", status);
     return status;
   } catch (error) {
     logger.error(commonMessages.errorOccured, error);
