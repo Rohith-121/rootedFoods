@@ -6,7 +6,7 @@ const {
 const { v4: uuidv4 } = require("uuid");
 // const Randomstring = require("randomstring");
 const responseModel = require("../models/ResponseModel");
-const { mail } = require("../utils/mail");
+// const { mail } = require("../utils/mail");
 const {
   ContainerIds,
   roles,
@@ -92,19 +92,19 @@ async function handleRole(role, userId, userotp) {
       case roles.StoreAdmin:
       case roles.SystemAdmin:
       case roles.StoreManager:
-        var mailOption = {
-          from: process.env.EMAIL,
-          to: userId,
-          subject: otpMessages.subject,
-          text: otpMessages.email.replace(otpMessages.otp, userotp),
-        };
-        var mailResponse = await mail(mailOption);
-        if (mailResponse.error) {
-          return new responseModel(
-            false,
-            commonMessages.failed + mailResponse.error,
-          );
-        }
+        // var mailOption = {
+        //   from: process.env.EMAIL,
+        //   to: userId,
+        //   subject: otpMessages.subject,
+        //   text: otpMessages.email.replace(otpMessages.otp, userotp),
+        // };
+        // var mailResponse = await mail(mailOption);
+        // if (mailResponse.error) {
+        //   return new responseModel(
+        //     false,
+        //     commonMessages.failed + mailResponse.error,
+        //   );
+        // }
 
         return new responseModel(true, otpMessages.sent);
       case roles.Customer:
