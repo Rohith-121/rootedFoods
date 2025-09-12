@@ -209,6 +209,8 @@ const handleNormalOrderPayment = async (
     await updateProductQuantities(order);
   }
 
+  console.log(paymentState);
+
   var options = {
       method: "POST",
       url: process.env.msg91Url,
@@ -223,14 +225,16 @@ const handleNormalOrderPayment = async (
         .replace("{phone}", order.customerDetails.phone)
         .replace("{orderId}", orderId)
         .replace("{paymentStatus}", paymentState)
-        .replace("{amount}", paymentDetails.amount)
+        .replace("{amount}", order.priceDetails.totalPrice ?? paymentDetails.amount)
         .replace(
           "{deliveryDate}",
           dayjs(order.scheduledDelivery).format("DD-MM-YYYY HH:mmA"),
         ),
     };
 
-    await axios.request(options);
+   var status = await axios.request(options);
+
+  console.log("Status:", status);
 
   await orderContainer.item(order.id, order.id).replace(order);
 
