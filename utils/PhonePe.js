@@ -207,8 +207,9 @@ const handleNormalOrderPayment = async (
 
   if (paymentState === "COMPLETED") {
     await updateProductQuantities(order);
+  }
 
-    var options = {
+  var options = {
       method: "POST",
       url: process.env.msg91Url,
       headers: {
@@ -230,7 +231,6 @@ const handleNormalOrderPayment = async (
     };
 
     await axios.request(options);
-  }
 
   await orderContainer.item(order.id, order.id).replace(order);
 
