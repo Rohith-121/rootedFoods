@@ -43,7 +43,7 @@ const msg91Templates = {
   otpSMS:
     '{\n  "template_id": "{templateId}", \n  "short_url": "1 (On) or 0 (Off)",\n  "short_url_expiry": "Seconds (Optional)",\n  "realTimeResponse": "1 (Optional)", \n  "recipients": [\n    {\n      "mobiles": "91{phone}",\n      "number": "{otp}"\n    }\n  ]\n}',
   orderSMS:
-    '{\n  "template_id": "{templateId}", \n  "short_url": "1 (On) or 0 (Off)",\n  "short_url_expiry": "Seconds (Optional)",\n  "realTimeResponse": "1 (Optional)", \n  "recipients": [\n    {\n      "mobiles": "91{phone}",\n      "OrderID": "{orderId}",\n      "OrderStatus": "Order Placed",\n      "PaymentStatus": "{paymentStatus}",\n      "DeliveryDate": "{DeliveryDate}",\n      "Amount": "{amount}"\n    }\n  ]\n}',
+    '{\n  "template_id": "{templateId}", \n  "short_url": "1 (On) or 0 (Off)",\n  "short_url_expiry": "Seconds (Optional)",\n  "realTimeResponse": "1 (Optional)", \n  "recipients": [\n    {\n      "mobiles": "91{phone}",\n      "OrderID": "{orderId}",\n      "OrderStatus": "Order Placed",\n      "PaymentStatus": "{paymentStatus}",\n      "DeliveryDate": "{deliveryDate}",\n      "Amount": "{amount}"\n    }\n  ]\n}',
 };
 
 const msg91TemplateIds = {
