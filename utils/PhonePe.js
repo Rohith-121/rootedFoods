@@ -49,7 +49,6 @@ const client = StandardCheckoutClient.getInstance(
   clientVirtion,
   env,
 );
-const dayjs = require("dayjs");
 
 const WEBHOOK_USERNAME = process.env.WEBHOOK_USER;
 const WEBHOOK_PASSWORD = process.env.WEBHOOK_PASS;
@@ -229,7 +228,7 @@ const handleNormalOrderPayment = async (
         .replace("{amount}", order.priceDetails.totalPrice ?? paymentDetails.amount)
         .replace(
           "{deliveryDate}",
-          dayjs(order.scheduledDelivery).format("DD-MM-YYYY HH:mmA"),
+          dayjs(order.scheduledDelivery).format("DD-MM-YYYY hh:mm A"),
         ),
     };
 
