@@ -108,6 +108,12 @@ const handlePaymentStatus = async (req, res) => {
       res,
     );
 
+    console.log("Order ID:", orderId);
+
+    console.log("Order Type:", orderType);
+    console.log("Payment State:", paymentState);
+    console.log("Payment Details:", paymentDetails,);
+    console.log("response Payload:", payload);
     console.log(status);
     return status;
   } catch (error) {
