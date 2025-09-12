@@ -100,13 +100,16 @@ const handlePaymentStatus = async (req, res) => {
       );
     }
 
-    return await handleNormalOrderPayment(
+    const status =  await handleNormalOrderPayment(
       orderId,
       paymentDetails,
       paymentState,
       payload,
       res,
     );
+
+    console.log(status);
+    return status;
   } catch (error) {
     logger.error(commonMessages.errorOccured, error);
     return res
