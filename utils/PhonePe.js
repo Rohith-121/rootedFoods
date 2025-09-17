@@ -177,7 +177,14 @@ const createSubscriptionOrders = async (subscription, paymentDetails) => {
       subscriptionId: subscription.id,
       scheduledDelivery: scheduledDelivery,
       status: "New",
-      priceDetails: parseFloat(subscription.priceDetails),
+      priceDetails: {
+        discountPrice: subscription.priceDetails.discountPrice || 0,
+        subTotal: (parseFloat(subscription.priceDetails.subTotal) / subscription.weeksCount) || 0,
+        deliveryCharges: subscription.priceDetails.deliveryCharges || 0,
+        packagingCharges: subscription.priceDetails.packagingCharges || 0,
+        platformCharges: subscription.priceDetails.platformCharges || 0,
+        totalPrice: (subscription.priceDetails.totalPrice / subscription.weeksCount) || 0,
+      },
       orderType: orderCategoriesMap.subscriptions,
       storeAdminId: subscription.storeAdminId || "",
       PaymentDetails: {
@@ -191,6 +198,7 @@ const createSubscriptionOrders = async (subscription, paymentDetails) => {
     await updateProductQuantities(order);
   }
 };
+
 const handleNormalOrderPayment = async (
   orderId,
   paymentDetails,
@@ -209,32 +217,31 @@ const handleNormalOrderPayment = async (
     await updateProductQuantities(order);
   }
 
-  console.log(paymentState);
-
   var options = {
-      method: "POST",
-      url: process.env.msg91Url,
-      headers: {
-        accept: "application/json",
-        authkey: process.env.msg91AuthKey,
-        "content-type": "application/json",
-      },
+    method: "POST",
+    url: process.env.msg91Url,
+    headers: {
+      accept: "application/json",
+      authkey: process.env.msg91AuthKey,
+      "content-type": "application/json",
+    },
 
-      data: msg91Templates.orderSMS
-        .replace("{templateId}", msg91TemplateIds.orderTemplateId)
-        .replace("{phone}", order.customerDetails.phone)
-        .replace("{orderId}", orderId)
-        .replace("{paymentStatus}", paymentState)
-        .replace("{amount}", order.priceDetails.totalPrice ?? paymentDetails.amount)
-        .replace(
-          "{deliveryDate}",
-          dayjs(order.scheduledDelivery).format("DD-MM-YYYY hh:mm A"),
-        ),
-    };
+    data: msg91Templates.orderSMS
+      .replace("{templateId}", msg91TemplateIds.orderTemplateId)
+      .replace("{phone}", order.customerDetails.phone)
+      .replace("{orderId}", orderId)
+      .replace("{paymentStatus}", paymentState)
+      .replace(
+        "{amount}",
+        order.priceDetails.totalPrice ?? paymentDetails.amount,
+      )
+      .replace(
+        "{deliveryDate}",
+        dayjs(order.scheduledDelivery).format("DD-MM-YYYY HH:mmA"),
+      ),
+  };
 
-   var status = await axios.request(options);
-
-  console.log("Status:", status);
+  await axios.request(options);
 
   await orderContainer.item(order.id, order.id).replace(order);
 
