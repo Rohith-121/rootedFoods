@@ -179,7 +179,7 @@ const createSubscriptionOrders = async (subscription, paymentDetails) => {
       status: "New",
       priceDetails: {
         discountPrice: subscription.priceDetails.discountPrice || 0,
-        subTotal: (parseFloat(subscription.priceDetails.subTotal) / subscription.weeksCount) || 0,
+        subTotal: (parseFloat(subscription.priceDetails.subTotal) / subscription.weeksCount).toFixed(2) || 0,
         deliveryCharges: subscription.priceDetails.deliveryCharges || 0,
         packagingCharges: subscription.priceDetails.packagingCharges || 0,
         platformCharges: subscription.priceDetails.platformCharges || 0,
